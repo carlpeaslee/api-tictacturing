@@ -18,6 +18,10 @@ var _createPerson = require('./mutations/createPerson');
 
 var _createPerson2 = _interopRequireDefault(_createPerson);
 
+var _submitMove = require('./mutations/submitMove');
+
+var _submitMove2 = _interopRequireDefault(_submitMove);
+
 var _getAllBlogPosts = require('./queries/getAllBlogPosts');
 
 var _getAllBlogPosts2 = _interopRequireDefault(_getAllBlogPosts);
@@ -41,7 +45,8 @@ var RootMutation = new _graphql.GraphQLObjectType({
   description: 'The root mutation',
   fields: {
     createPerson: _createPerson2.default,
-    addBlogPost: _addBlogPost2.default
+    addBlogPost: _addBlogPost2.default,
+    submitMove: _submitMove2.default
   }
 });
 

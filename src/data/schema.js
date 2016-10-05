@@ -13,6 +13,8 @@ import BlogPost from './models/BlogPost'
 
 import addBlogPost from './mutations/addBlogPost'
 import createPerson from './mutations/createPerson'
+import submitMove from './mutations/submitMove'
+
 
 import getAllBlogPosts from './queries/getAllBlogPosts'
 import getPersonPermissions from './queries/getPersonPermissions'
@@ -32,6 +34,7 @@ const RootMutation = new GraphQLObjectType({
   fields: {
     createPerson: createPerson,
     addBlogPost:addBlogPost,
+    submitMove: submitMove
   }
 })
 

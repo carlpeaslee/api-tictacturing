@@ -10,16 +10,16 @@ const app = express();
 app.set('port', (process.env.PORT || 3001));
 
 // PRODUCTION
-const secret = process.env.AUTH_SECRET
+// const secret = process.env.AUTH_SECRET
 
 //DEVELOPMENT
-// import authSecret from '../authSecret'
-// const secret = authSecret
+import authSecret from '../authSecret'
+const secret = authSecret
 
 
 var jwtCheck = jwt({
   secret: new Buffer(secret, 'base64'),
-  audience: '8FyGCf7RZKCjVFKuzAqSMsrHNZ5AKvrr',
+  audience: 'ygUSzo55mYxKoOuUAQAsxAwKqkuG0YvM',
   credentialsRequired: false,
 });
 

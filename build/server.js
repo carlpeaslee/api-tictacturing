@@ -24,6 +24,10 @@ var _db = require('./data/db');
 
 var _db2 = _interopRequireDefault(_db);
 
+var _authSecret = require('../authSecret');
+
+var _authSecret2 = _interopRequireDefault(_authSecret);
+
 var _PermissionsHandler = require('./data/mutations/PermissionsHandler');
 
 var _PermissionsHandler2 = _interopRequireDefault(_PermissionsHandler);
@@ -35,16 +39,15 @@ var app = (0, _express2.default)();
 app.set('port', process.env.PORT || 3001);
 
 // PRODUCTION
-var secret = process.env.AUTH_SECRET;
+// const secret = process.env.AUTH_SECRET
 
 //DEVELOPMENT
-// import authSecret from '../authSecret'
-// const secret = authSecret
 
+var secret = _authSecret2.default;
 
 var jwtCheck = (0, _expressJwt2.default)({
   secret: new Buffer(secret, 'base64'),
-  audience: '8FyGCf7RZKCjVFKuzAqSMsrHNZ5AKvrr',
+  audience: 'ygUSzo55mYxKoOuUAQAsxAwKqkuG0YvM',
   credentialsRequired: false
 });
 
