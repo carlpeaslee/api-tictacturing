@@ -9,12 +9,12 @@ const app = express();
 
 app.set('port', (process.env.PORT || 3001));
 
-//PRODUCTION
-// const secret = process.env.AUTH_SECRET
+PRODUCTION
+const secret = process.env.AUTH_SECRET
 
 //DEVELOPMENT
-import authSecret from '../authSecret'
-const secret = authSecret
+// import authSecret from '../authSecret'
+// const secret = authSecret
 
 
 var jwtCheck = jwt({
