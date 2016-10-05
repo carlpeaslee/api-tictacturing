@@ -9,7 +9,7 @@ const app = express();
 
 app.set('port', (process.env.PORT || 3001));
 
-PRODUCTION
+// PRODUCTION
 const secret = process.env.AUTH_SECRET
 
 //DEVELOPMENT

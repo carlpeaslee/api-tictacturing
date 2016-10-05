@@ -34,7 +34,7 @@ var app = (0, _express2.default)();
 
 app.set('port', process.env.PORT || 3001);
 
-PRODUCTION;
+// PRODUCTION
 var secret = process.env.AUTH_SECRET;
 
 //DEVELOPMENT
