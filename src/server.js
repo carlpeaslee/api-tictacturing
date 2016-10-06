@@ -4,10 +4,24 @@ import schema from './data/schema'
 import jwt from 'express-jwt'
 import cors from 'cors'
 import db from './data/db'
+import http from 'http';
+import SocketIO from 'socket.io'
+import uuid from 'uuid'
+import winChecker from './tictactoe/winChecker'
 
-const app = express();
+const app = express()
+
 
 app.set('port', (process.env.PORT || 3001));
+
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+})
+
+
 
 // PRODUCTION
 const secret = process.env.AUTH_SECRET
@@ -67,6 +81,89 @@ db
   })
 
 
-app.listen(app.get('port'), () => {
+const server = app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
-});
+})
+
+const io = new SocketIO(server)
+io.set('origins', '*:*')
+
+let waitingRooms = []
+let liveMatches = []
+
+const INITIAL_BOARDSTATE = {
+  0: 'EMPTY',
+  1: 'EMPTY',
+  2: 'EMPTY',
+  3: 'EMPTY',
+  4: 'EMPTY',
+  5: 'EMPTY',
+  6: 'EMPTY',
+  7: 'EMPTY',
+  8: 'EMPTY'
+}
+
+io.on('connection', (socket) => {
+  // let query = socket.handshake.query
+  // let socketId = socket.id
+  // console.log('connection detected', query, socketId)
+  const playerId = socket.id
+
+  socket.on('matchReqest', (data) => {
+    console.log('matchRequest detected', data)
+    if (waitingRooms.length === 0) {
+      const waitingRoom = {
+        roomId: uuid.v4(),
+        player1: playerId
+      }
+      waitingRooms.push(waitingRoom)
+      let socketRoom = io.of(waitingRoom.roomId)
+      socket.emit('waitingRoomFound', waitingRoom)
+      socket.join(socketRoom)
+      console.log('waitingRooms: ', waitingRooms)
+    } else {
+      const match = {
+        ...waitingRooms.shift(),
+        player2: playerId,
+        boardState: {
+          ...INITIAL_BOARDSTATE
+        }
+      }
+      liveMatches.push(match)
+      socket.emit('matchFound', match)
+      let matchRoom = io.of(match.roomId)
+      socket.join(matchRoom)
+      io.to(matchRoom).emit('opponentFound', match)
+      console.log('liveMatches: ', liveMatches)
+    }
+  })
+
+  socket.on('moveMade', (data) =>{
+    const playerId = data.playerId
+    const position = data.position
+    const matchId = data.matchId
+    const matchRoom = io.of(matchId)
+
+    io.to(matchRoom).emit('moveRecorded', {
+      playerId,
+      position
+    })
+
+    const matchObject = liveMatches.find( (match, index, array) => {
+      if(match.roomId === matchId) {
+        array[index].boardState[position] = playerId
+        return array[index]
+      }
+    })
+
+    let winResult = winChecker(matchObject.boardState)
+
+    if (winResult) {
+      io.to(matchRoom).emit('winner', {
+        ...winResult
+      })
+    }
+
+  })
+
+})
