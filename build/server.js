@@ -42,6 +42,10 @@ var _winChecker = require('./tictactoe/winChecker');
 
 var _winChecker2 = _interopRequireDefault(_winChecker);
 
+var _ai = require('./tictactoe/ai');
+
+var _ai2 = _interopRequireDefault(_ai);
+
 var _PermissionsHandler = require('./data/mutations/PermissionsHandler');
 
 var _PermissionsHandler2 = _interopRequireDefault(_PermissionsHandler);
@@ -131,59 +135,95 @@ var INITIAL_BOARDSTATE = {
 };
 
 io.on('connection', function (socket) {
-  // let query = socket.handshake.query
-  // let socketId = socket.id
-  // console.log('connection detected', query, socketId)
   var playerId = socket.id;
 
   socket.on('matchReqest', function (data) {
-    console.log('matchRequest detected', data);
     if (waitingRooms.length === 0) {
-      var waitingRoom = {
-        roomId: _uuid2.default.v4(),
-        player1: playerId
-      };
-      waitingRooms.push(waitingRoom);
-      var socketRoom = io.of(waitingRoom.roomId);
-      socket.emit('waitingRoomFound', waitingRoom);
-      socket.join(socketRoom);
-      console.log('waitingRooms: ', waitingRooms);
+      (function () {
+        var waitingRoom = {
+          roomId: _uuid2.default.v4(),
+          player1: playerId
+        };
+        waitingRooms.push(waitingRoom);
+        socket.join(waitingRoom.roomId);
+        io.to(waitingRoom.roomId).emit('waitingRoomFound', waitingRoom);
+        setTimeout(function () {
+          waitingRooms.find(function (room, index, array) {
+            if (room.roomId === waitingRoom.roomId) {
+              var match = _extends({}, waitingRooms.shift(), {
+                player2: 'ROBOT',
+                boardState: _extends({}, INITIAL_BOARDSTATE)
+              });
+              liveMatches.push(match);
+              io.to(match.roomId).emit('opponentFound', match);
+            }
+          });
+        }, 6000);
+      })();
     } else {
       var match = _extends({}, waitingRooms.shift(), {
         player2: playerId,
         boardState: _extends({}, INITIAL_BOARDSTATE)
       });
       liveMatches.push(match);
-      socket.emit('matchFound', match);
-      var matchRoom = io.of(match.roomId);
-      socket.join(matchRoom);
-      io.to(matchRoom).emit('opponentFound', match);
-      console.log('liveMatches: ', liveMatches);
+      socket.join(match.roomId);
+      io.to(match.roomId).emit('opponentFound', match);
     }
   });
 
   socket.on('moveMade', function (data) {
+    console.log(data);
     var playerId = data.playerId;
     var position = data.position;
     var matchId = data.matchId;
-    var matchRoom = io.of(matchId);
 
-    io.to(matchRoom).emit('moveRecorded', {
-      playerId: playerId,
-      position: position
-    });
-
-    var matchObject = liveMatches.find(function (match, index, array) {
+    liveMatches.find(function (match, index, array) {
       if (match.roomId === matchId) {
         array[index].boardState[position] = playerId;
-        return array[index];
+        io.to(matchId).emit('moveRecorded', {
+          playerId: playerId,
+          position: position
+        });
+        var winResult = (0, _winChecker2.default)(array[index].boardState);
+        if (winResult) {
+          io.to(matchId).emit('winner', _extends({}, winResult));
+          array.splice(index, 1);
+        }
+        if (match.player2 === 'ROBOT' && !winResult) {
+          console.log('ROBOT DETECTED');
+          var wait = Math.floor(Math.random() * 6000);
+          setTimeout(function () {
+            var move = (0, _ai2.default)(array[index].boardState);
+            array[index].boardState[move] = 'ROBOT';
+            io.to(matchId).emit('moveRecorded', {
+              playerId: 'ROBOT',
+              position: move
+            });
+            var winResult = (0, _winChecker2.default)(array[index].boardState);
+            if (winResult) {
+              io.to(matchId).emit('winner', _extends({}, winResult));
+              array.splice(index, 1);
+            }
+          }, wait);
+        }
+      }
+    });
+  });
+
+  socket.on('disconnect', function () {
+    liveMatches.find(function (match, index, array) {
+      if (match.player1 === playerId || match.player2 === playerId) {
+        io.to(match.roomId).emit('opponentDisconnected');
+        array.splice(index, 1);
+        return;
       }
     });
 
-    var winResult = (0, _winChecker2.default)(matchObject.boardState);
-
-    if (winResult) {
-      io.to(matchRoom).emit('winner', _extends({}, winResult));
-    }
+    waitingRooms.find(function (room, index, array) {
+      if (room.player1 === playerId) {
+        array.splice(index, 1);
+        return;
+      }
+    });
   });
 });

@@ -7,7 +7,9 @@ import db from './data/db'
 import http from 'http';
 import SocketIO from 'socket.io'
 import uuid from 'uuid'
+
 import winChecker from './tictactoe/winChecker'
+import ai from './tictactoe/ai'
 
 const app = express()
 
@@ -104,23 +106,32 @@ const INITIAL_BOARDSTATE = {
 }
 
 io.on('connection', (socket) => {
-  // let query = socket.handshake.query
-  // let socketId = socket.id
-  // console.log('connection detected', query, socketId)
   const playerId = socket.id
 
   socket.on('matchReqest', (data) => {
-    console.log('matchRequest detected', data)
     if (waitingRooms.length === 0) {
       const waitingRoom = {
         roomId: uuid.v4(),
         player1: playerId
       }
       waitingRooms.push(waitingRoom)
-      let socketRoom = io.of(waitingRoom.roomId)
-      socket.emit('waitingRoomFound', waitingRoom)
-      socket.join(socketRoom)
-      console.log('waitingRooms: ', waitingRooms)
+      socket.join(waitingRoom.roomId)
+      io.to(waitingRoom.roomId).emit('waitingRoomFound', waitingRoom)
+      setTimeout( ()=> {
+        waitingRooms.find( (room, index, array) => {
+          if(room.roomId === waitingRoom.roomId) {
+            const match = {
+              ...waitingRooms.shift(),
+              player2: 'ROBOT',
+              boardState: {
+                ...INITIAL_BOARDSTATE
+              }
+            }
+            liveMatches.push(match)
+            io.to(match.roomId).emit('opponentFound', match)
+          }
+        })
+      }, 6000)
     } else {
       const match = {
         ...waitingRooms.shift(),
@@ -130,40 +141,70 @@ io.on('connection', (socket) => {
         }
       }
       liveMatches.push(match)
-      socket.emit('matchFound', match)
-      let matchRoom = io.of(match.roomId)
-      socket.join(matchRoom)
-      io.to(matchRoom).emit('opponentFound', match)
-      console.log('liveMatches: ', liveMatches)
+      socket.join(match.roomId)
+      io.to(match.roomId).emit('opponentFound', match)
     }
   })
 
   socket.on('moveMade', (data) =>{
+    console.log(data)
     const playerId = data.playerId
     const position = data.position
     const matchId = data.matchId
-    const matchRoom = io.of(matchId)
 
-    io.to(matchRoom).emit('moveRecorded', {
-      playerId,
-      position
-    })
 
-    const matchObject = liveMatches.find( (match, index, array) => {
+    liveMatches.find( (match, index, array) => {
       if(match.roomId === matchId) {
         array[index].boardState[position] = playerId
-        return array[index]
+        io.to(matchId).emit('moveRecorded', {
+          playerId,
+          position
+        })
+        let winResult = winChecker(array[index].boardState)
+        if (winResult) {
+          io.to(matchId).emit('winner', {
+            ...winResult
+          })
+          array.splice(index, 1)
+        }
+        if(match.player2 === 'ROBOT' && !winResult) {
+          console.log('ROBOT DETECTED')
+          let wait =  Math.floor(Math.random() * 6000)
+          setTimeout( () => {
+            const move = ai(array[index].boardState)
+            array[index].boardState[move] = 'ROBOT'
+            io.to(matchId).emit('moveRecorded', {
+              playerId: 'ROBOT',
+              position: move
+            })
+            let winResult = winChecker(array[index].boardState)
+            if (winResult) {
+              io.to(matchId).emit('winner', {
+                ...winResult
+              })
+              array.splice(index, 1)
+            }
+          }, wait)
+        }
+      }
+    })
+  })
+
+  socket.on('disconnect', ()=>{
+    liveMatches.find( (match, index, array) => {
+      if((match.player1 === playerId) || (match.player2 === playerId)) {
+        io.to(match.roomId).emit('opponentDisconnected')
+        array.splice(index, 1)
+        return
       }
     })
 
-    let winResult = winChecker(matchObject.boardState)
-
-    if (winResult) {
-      io.to(matchRoom).emit('winner', {
-        ...winResult
-      })
-    }
-
+    waitingRooms.find( (room, index, array) => {
+      if(room.player1 === playerId) {
+        array.splice(index, 1)
+        return
+      }
+    })
   })
 
 })

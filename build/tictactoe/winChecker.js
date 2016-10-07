@@ -5,7 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = winChecker;
 function winChecker(boardState) {
-  console.log('winChecker match', boardState);
   if (boardState['0'] !== 'EMPTY' && boardState['0'] === boardState['1'] && boardState['0'] === boardState['2']) {
     return {
       winner: boardState['0'],
@@ -45,6 +44,11 @@ function winChecker(boardState) {
     return {
       winner: boardState['2'],
       locationOfWin: 'DIAGONAL_UP'
+    };
+  } else if (!Object.values(boardState).includes('EMPTY')) {
+    return {
+      winner: "CAT'S GAME",
+      locationOfWin: 'TIE'
     };
   } else {
     return false;
