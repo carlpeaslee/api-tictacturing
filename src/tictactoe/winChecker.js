@@ -46,13 +46,23 @@ export default function winChecker(boardState) {
       winner: boardState['2'],
       locationOfWin: 'DIAGONAL_UP'
     }
-  }
-  else if(!Object.values(boardState).includes('EMPTY')) {
-    return {
-      winner: "CAT'S GAME",
-      locationOfWin: 'TIE'
-    }
   } else {
-    return false
-  }
+      return false
+    }
+  // else if(!Object.values(boardState).includes('EMPTY')) {
+  //   return {
+  //     winner: "CAT'S GAME",
+  //     locationOfWin: 'TIE'
+  //   }
+  // }
+
 }
+
+// function tieChecker(boardState) {
+//   boardState.find( (item)=>{
+//     if (item === 'EMPTY') {
+//       return false
+//     }
+//   })
+//
+// }
