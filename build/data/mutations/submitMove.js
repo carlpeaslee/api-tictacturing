@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.addMove = addMove;
 
 var _TTTMove = require('../models/TTTMove');
 

@@ -8,6 +8,10 @@ import http from 'http';
 import SocketIO from 'socket.io'
 import uuid from 'uuid'
 
+import {addMove} from './data/mutations/submitMove'
+import TTTGuess from './data/models/TTTGuess'
+
+
 import winChecker from './tictactoe/winChecker'
 import ai from './tictactoe/ai'
 
@@ -160,6 +164,7 @@ io.on('connection', (socket) => {
           playerId,
           position
         })
+        addMove(undefined, matchId,playerId, position)
         let winResult = winChecker(array[index].boardState)
         if (winResult) {
           io.to(matchId).emit('winner', {
@@ -177,6 +182,7 @@ io.on('connection', (socket) => {
               playerId: 'ROBOT',
               position: move
             })
+            addMove(undefined, matchId, 'ROBOT' , move)
             let winResult = winChecker(array[index].boardState)
             if (winResult) {
               io.to(matchId).emit('winner', {
@@ -192,7 +198,19 @@ io.on('connection', (socket) => {
 
   socket.on('turingGuess', (data)=>{
     console.log('turing guess made', data)
-
+    TTTGuess.build({
+      guessId: undefined,
+      matchId: data.matchId,
+      playerId: data.playerId,
+      guessedRobot: data.guessedRobot
+    })
+    .save()
+    .then( (anotherTask) => {
+      return "wow success!"
+    })
+    .catch( (error) => {
+      console.log(error)
+    })
   })
 
   socket.on('disconnect', ()=>{

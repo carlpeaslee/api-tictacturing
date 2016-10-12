@@ -5,9 +5,9 @@ import Match from './Match'
 import Player from './Player'
 
 
-const TTTMove = db.define('TTTMove', {
+const TTTGuess = db.define('TTTGuess', {
 
-  moveId: {
+  guessId: {
     type: sequelize.STRING,
     defaultValue: sequelize.UUIDV1,
     primaryKey: true,
@@ -32,15 +32,11 @@ const TTTMove = db.define('TTTMove', {
     // }
   },
 
-  position: {
-    type: sequelize.INTEGER,
+  guessedRobot: {
+    type: sequelize.BOOLEAN,
     allowNull: false,
-    validate: {
-      min: 0,
-      max: 8
-    }
   },
 
 });
 
-export default TTTMove
+export default TTTGuess

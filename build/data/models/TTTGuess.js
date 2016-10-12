@@ -22,9 +22,9 @@ var _Player2 = _interopRequireDefault(_Player);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var TTTMove = _db2.default.define('TTTMove', {
+var TTTGuess = _db2.default.define('TTTGuess', {
 
-  moveId: {
+  guessId: {
     type: _sequelize2.default.STRING,
     defaultValue: _sequelize2.default.UUIDV1,
     primaryKey: true,
@@ -40,15 +40,11 @@ var TTTMove = _db2.default.define('TTTMove', {
     type: _sequelize2.default.STRING
   },
 
-  position: {
-    type: _sequelize2.default.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 0,
-      max: 8
-    }
+  guessedRobot: {
+    type: _sequelize2.default.BOOLEAN,
+    allowNull: false
   }
 
 });
 
-exports.default = TTTMove;
+exports.default = TTTGuess;

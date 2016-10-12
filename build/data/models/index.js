@@ -20,6 +20,10 @@ var _TTTMove = require('./TTTMove');
 
 var _TTTMove2 = _interopRequireDefault(_TTTMove);
 
+var _TTTGuess = require('./TTTGuess');
+
+var _TTTGuess2 = _interopRequireDefault(_TTTGuess);
+
 var _Player = require('./Player');
 
 var _Player2 = _interopRequireDefault(_Player);

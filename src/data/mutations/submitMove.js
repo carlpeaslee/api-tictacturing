@@ -33,7 +33,7 @@ const submitMove =  {
 
 
 
-function addMove(moveId, matchId, playerId, position) {
+export function addMove(moveId, matchId, playerId, position) {
   console.log('addMove')
   TTTMove.build({
     moveId,

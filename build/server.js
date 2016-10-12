@@ -38,6 +38,12 @@ var _uuid = require('uuid');
 
 var _uuid2 = _interopRequireDefault(_uuid);
 
+var _submitMove = require('./data/mutations/submitMove');
+
+var _TTTGuess = require('./data/models/TTTGuess');
+
+var _TTTGuess2 = _interopRequireDefault(_TTTGuess);
+
 var _winChecker = require('./tictactoe/winChecker');
 
 var _winChecker2 = _interopRequireDefault(_winChecker);
@@ -184,6 +190,7 @@ io.on('connection', function (socket) {
           playerId: playerId,
           position: position
         });
+        (0, _submitMove.addMove)(undefined, matchId, playerId, position);
         var winResult = (0, _winChecker2.default)(array[index].boardState);
         if (winResult) {
           io.to(matchId).emit('winner', _extends({}, winResult));
@@ -199,6 +206,7 @@ io.on('connection', function (socket) {
               playerId: 'ROBOT',
               position: move
             });
+            (0, _submitMove.addMove)(undefined, matchId, 'ROBOT', move);
             var winResult = (0, _winChecker2.default)(array[index].boardState);
             if (winResult) {
               io.to(matchId).emit('winner', _extends({}, winResult));
@@ -212,6 +220,16 @@ io.on('connection', function (socket) {
 
   socket.on('turingGuess', function (data) {
     console.log('turing guess made', data);
+    _TTTGuess2.default.build({
+      guessId: undefined,
+      matchId: data.matchId,
+      playerId: data.playerId,
+      guessedRobot: data.guessedRobot
+    }).save().then(function (anotherTask) {
+      return "wow success!";
+    }).catch(function (error) {
+      console.log(error);
+    });
   });
 
   socket.on('disconnect', function () {
