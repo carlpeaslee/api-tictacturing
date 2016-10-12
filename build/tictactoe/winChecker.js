@@ -45,15 +45,14 @@ function winChecker(boardState) {
       winner: boardState['2'],
       locationOfWin: 'DIAGONAL_UP'
     };
+  } else if (boardState['0'] !== 'EMPTY' && boardState['1'] !== 'EMPTY' && boardState['2'] !== 'EMPTY' && boardState['3'] !== 'EMPTY' && boardState['4'] !== 'EMPTY' && boardState['5'] !== 'EMPTY' && boardState['6'] !== 'EMPTY' && boardState['7'] !== 'EMPTY' && boardState['8'] !== 'EMPTY') {
+    return {
+      winner: "CAT'S GAME",
+      locationOfWin: 'TIE'
+    };
   } else {
     return false;
   }
-  // else if(!Object.values(boardState).includes('EMPTY')) {
-  //   return {
-  //     winner: "CAT'S GAME",
-  //     locationOfWin: 'TIE'
-  //   }
-  // }
 }
 
 // function tieChecker(boardState) {

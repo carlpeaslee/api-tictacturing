@@ -190,6 +190,11 @@ io.on('connection', (socket) => {
     })
   })
 
+  socket.on('turingGuess', (data)=>{
+    console.log('turing guess made', data)
+
+  })
+
   socket.on('disconnect', ()=>{
     liveMatches.find( (match, index, array) => {
       if((match.player1 === playerId) || (match.player2 === playerId)) {

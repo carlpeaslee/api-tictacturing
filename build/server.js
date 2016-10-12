@@ -210,6 +210,10 @@ io.on('connection', function (socket) {
     });
   });
 
+  socket.on('turingGuess', function (data) {
+    console.log('turing guess made', data);
+  });
+
   socket.on('disconnect', function () {
     liveMatches.find(function (match, index, array) {
       if (match.player1 === playerId || match.player2 === playerId) {
